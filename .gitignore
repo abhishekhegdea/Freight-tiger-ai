@@ -1,0 +1,16 @@
+# Environment and sensitive keys
+.env
+*.env
+.env.local
+
+# Python caches and artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Logs and scratch files
+*.log
+scratch/

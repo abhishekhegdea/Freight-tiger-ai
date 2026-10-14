@@ -1,0 +1,64 @@
+FREIGHTTIGER PIPELINE - THREE-RUN REPRODUCIBILITY CHECK
+Date: 2026-10-15
+Status: PASS (all three runs byte-for-byte identical)
+
+1. Commands (identical inputs, default config, offline provider)
+   python run_pipeline.py --output data/output/repro_run1.csv --metrics data/output/repro_run1_metrics.json --provider offline
+   python run_pipeline.py --output data/output/repro_run2.csv --metrics data/output/repro_run2_metrics.json --provider offline
+   python run_pipeline.py --output data/output/repro_run3.csv --metrics data/output/repro_run3_metrics.json --provider offline
+
+   Config: thresholds History >= 20.0% / Peer >= 20.0% (defaults),
+   provider 'offline', model 'deterministic-template'.
+   Each run wrote to its own separate output file - no later run overwrote
+   an earlier run's output before comparison. The official submission CSV
+   (data/output/freight_anomaly_report.csv) was NOT written by any of these
+   runs and was not used in the comparisons.
+
+2. Row counts
+   repro_run1.csv: 20 rows
+   repro_run2.csv: 20 rows
+   repro_run3.csv: 20 rows
+
+3. Byte-for-byte comparison results
+   run1 vs run2: IDENTICAL (cmp exit 0)
+   run2 vs run3: IDENTICAL (cmp exit 0)
+   run1 vs run3: IDENTICAL (cmp exit 0)
+   File size (each): 5811 bytes
+   MD5 (all three): 67ca217cb6a2399ba164bbe713f65e17
+
+4. Field-level content verification (pandas, all 8 columns, row order included)
+   - Row counts: 20 / 20 / 20
+   - Ordering: week_of ascending then route ascending - identical element-wise
+     across all three files (DataFrame.equals == True for all 3 pairs)
+   - Verdicts: 17 'Yes' flagged, 3 'No (justified)' - identical in all runs
+   - Note IDs: {'', 'N001', 'N002'} - identical in all runs
+   - Percentages (vs_own_history / vs_similar_routes): identical via
+     element-wise comparison and byte-identical file
+   - Explanations (reason column): identical via element-wise comparison and
+     byte-identical file
+
+5. Differences observed: NONE. Zero differences in all three comparisons,
+   across every field including explanations.
+
+6. Official submission CSV integrity
+   MD5 before runs: a62812e3ba79d54eee9705c24d1b5e44
+   MD5 after runs:  a62812e3ba79d54eee9705c24d1b5e44 (md5sum -c: OK)
+   No regeneration was necessary; the official CSV was left unchanged.
+   (Its content also matches the repro run outputs exactly.)
+
+7. Test suite (run after the three-run check)
+   Command: python -m pytest tests/ -v
+   Result:  59 passed, 0 failed, 2 warnings (31.41s), exit code 0
+   Warnings are third-party DeprecationWarnings from dateutil/pytz, not
+   project code. Notably passing: test_integration_repeated_offline_runs_identical,
+   test_repeated_runs_identical_verdicts, and
+   test_deterministic_fallback_explanations_three_runs.
+
+Note: Pre-existing leftover files run1_test.csv / run2_test.csv in
+     data/output are from an earlier check and were NOT used in this
+     verification. Only repro_run1/2/3.csv, each generated in this
+     session, were compared.
+
+Conclusion: The pipeline is deterministic and reproducible under identical
+inputs, configuration, and the offline provider. Three-run reproducibility
+check PASSED.
